@@ -1,158 +1,360 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shader Explorer</title>
-    <style>
-      * { box-sizing: border-box; margin: 0; padding: 0; }
-      body {
-        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
-        background: #0a0a0a;
-        color: #e0e0e0;
-        height: 100vh;
-        overflow: hidden;
-      }
-      #app {
-        display: grid;
-        grid-template-columns: 280px 1fr 420px;
-        height: 100vh;
-        gap: 1px;
-        background: #222;
-      }
-      .panel {
-        background: #0a0a0a;
-        padding: 16px;
-        overflow-y: auto;
-      }
-      .panel h2 {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        color: #888;
-        margin-bottom: 12px;
-      }
-      #canvas-container {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: #000;
-        position: relative;
-      }
-      #shader-canvas {
-        max-width: 100%;
-        max-height: 100%;
-        image-rendering: pixelated;
-      }
-      #seed-display {
-        position: absolute;
-        bottom: 12px;
-        left: 12px;
-        font-size: 11px;
-        color: #666;
-        background: rgba(0,0,0,0.7);
-        padding: 4px 8px;
-        border-radius: 2px;
-      }
-      .control {
-        margin-bottom: 14px;
-      }
-      .control label {
-        display: flex;
-        justify-content: space-between;
-        font-size: 11px;
-        color: #aaa;
-        margin-bottom: 4px;
-      }
-      .control input[type="range"] {
-        width: 100%;
-        accent-color: #5cf;
-      }
-      .control input[type="number"], .control input[type="text"] {
-        width: 100%;
-        background: #1a1a1a;
-        border: 1px solid #333;
-        color: #e0e0e0;
-        padding: 6px 8px;
-        font-family: inherit;
-        font-size: 12px;
-        border-radius: 2px;
-      }
-      button {
-        background: #1a1a1a;
-        border: 1px solid #333;
-        color: #e0e0e0;
-        padding: 8px 12px;
-        font-family: inherit;
-        font-size: 12px;
-        cursor: pointer;
-        border-radius: 2px;
-        width: 100%;
-        margin-bottom: 6px;
-        transition: all 0.1s;
-      }
-      button:hover { border-color: #5cf; color: #5cf; }
-      button.primary { background: #5cf; color: #000; border-color: #5cf; }
-      button.primary:hover { background: #7df; color: #000; }
-      #code-output {
-        font-size: 10px;
-        line-height: 1.4;
-        color: #888;
-        white-space: pre-wrap;
-        word-break: break-all;
-        background: #0f0f0f;
-        padding: 10px;
-        border: 1px solid #222;
-        border-radius: 2px;
-        max-height: 300px;
-        overflow-y: auto;
-      }
-      #ast-tree {
-        font-size: 11px;
-        line-height: 1.5;
-        color: #aaa;
-        white-space: pre;
-        font-family: ui-monospace, monospace;
-      }
-      .stats { font-size: 11px; color: #888; line-height: 1.6; }
-      .stats span { color: #5cf; }
-    </style>
-  </head>
-  <body>
-    <div id="app">
-      <aside class="panel" id="controls-panel">
-        <h2>Controls</h2>
-        <div class="control">
-          <label>Seed <span id="seed-value">—</span></label>
-          <input type="text" id="seed-input" placeholder="random" />
-        </div>
-        <div class="control">
-          <label>Depth <span id="depth-value">4</span></label>
-          <input type="range" id="depth-slider" min="2" max="6" value="4" />
-        </div>
-        <button class="primary" id="regenerate-btn">Regenerate (G)</button>
-        <button id="reset-weights-btn">Reset weights</button>
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>YOUR NAME — Technical Artist</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  @view-transition { navigation: auto; }
+  :root {
+    --bg: #0a0a0a;
+    --bg-soft: #0f0f0f;
+    --line: #1d1d1d;
+    --fg: #ececec;
+    --muted: #8a8a8a;
+    --dim: #5a5a5a;
+    --accent: #5cf;
+    --accent-dim: #2b6f8c;
+    --display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: var(--mono);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  a { color: inherit; text-decoration: none; }
+  ::selection { background: var(--accent); color: #000; }
 
-        <h2 style="margin-top: 24px;">Operator weights</h2>
-        <div id="operator-weights"></div>
+  .mono-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
 
-        <h2 style="margin-top: 24px;">Stats</h2>
-        <div class="stats" id="stats-output">—</div>
-      </aside>
+  /* ---------- NAV ---------- */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 18px 28px;
+    backdrop-filter: blur(8px);
+    background: linear-gradient(to bottom, rgba(10,10,10,0.85), rgba(10,10,10,0));
+    mix-blend-mode: normal;
+  }
+  nav .brand { font-family: var(--mono); font-size: 13px; letter-spacing: 0.12em; }
+  nav .brand b { color: var(--accent); }
+  nav .links { display: flex; gap: 22px; font-size: 12px; letter-spacing: 0.08em; }
+  nav .links a { color: var(--muted); transition: color .15s; }
+  nav .links a:hover { color: var(--fg); }
 
-      <main id="canvas-container">
-        <canvas id="shader-canvas" width="720" height="720"></canvas>
-        <div id="seed-display">seed: —</div>
-      </main>
+  /* ---------- HERO ---------- */
+  #hero {
+    position: relative;
+    height: 100vh; min-height: 600px;
+    display: flex; align-items: center;
+    overflow: hidden;
+  }
+  #grid-canvas {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    display: block;
+  }
+  /* darkening + vignette so text stays readable over the shaders */
+  #hero .scrim {
+    position: absolute; inset: 0; z-index: 1;
+    background:
+      radial-gradient(120% 90% at 30% 40%, rgba(10,10,10,0) 0%, rgba(10,10,10,0.55) 60%, rgba(10,10,10,0.9) 100%),
+      linear-gradient(90deg, rgba(10,10,10,0.92) 0%, rgba(10,10,10,0.45) 45%, rgba(10,10,10,0.15) 100%);
+    pointer-events: none;
+  }
+  /* faint scanline grain */
+  #hero .grain {
+    position: absolute; inset: 0; z-index: 2; opacity: .35; pointer-events: none;
+    background-image: repeating-linear-gradient(0deg, rgba(255,255,255,0.025) 0 1px, transparent 1px 3px);
+    mix-blend-mode: overlay;
+  }
+  .hero-inner {
+    position: relative; z-index: 3;
+    padding: 0 28px; max-width: 1100px;
+  }
+  .hero-inner .eyebrow {
+    opacity: 0; animation: rise .8s .1s forwards;
+    margin-bottom: 22px;
+  }
+  h1.title {
+    font-family: var(--display);
+    font-weight: 800;
+    font-size: clamp(48px, 9vw, 132px);
+    line-height: 0.92;
+    letter-spacing: -0.03em;
+    margin-bottom: 26px;
+  }
+  h1.title .l1 { display: block; opacity: 0; animation: rise .9s .2s forwards; }
+  h1.title .l2 { display: block; color: var(--accent); opacity: 0; animation: rise .9s .34s forwards; }
+  .hero-inner .lede {
+    max-width: 540px;
+    color: var(--muted);
+    font-size: clamp(14px, 1.6vw, 17px);
+    line-height: 1.7;
+    opacity: 0; animation: rise .9s .5s forwards;
+  }
+  .hero-inner .lede b { color: var(--fg); font-weight: 500; }
+  .hero-cta {
+    margin-top: 34px; display: flex; gap: 14px; flex-wrap: wrap;
+    opacity: 0; animation: rise .9s .66s forwards;
+  }
+  .btn {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em;
+    padding: 12px 20px; border: 1px solid var(--line);
+    color: var(--fg); background: rgba(15,15,15,0.6);
+    transition: all .15s; cursor: pointer;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.solid { background: var(--accent); color: #000; border-color: var(--accent); }
+  .btn.solid:hover { background: #7adcff; color: #000; }
 
-      <aside class="panel" id="inspector-panel">
-        <h2>AST</h2>
-        <div id="ast-tree">—</div>
+  .scroll-cue {
+    position: absolute; z-index: 3; bottom: 26px; left: 28px;
+    font-size: 11px; letter-spacing: 0.16em; color: var(--dim);
+    display: flex; align-items: center; gap: 10px;
+    opacity: 0; animation: rise 1s 1s forwards;
+  }
+  .scroll-cue .bar { width: 38px; height: 1px; background: var(--dim); position: relative; overflow: hidden; }
+  .scroll-cue .bar::after { content:""; position:absolute; inset:0; background: var(--accent); transform: translateX(-100%); animation: sweep 2.4s ease-in-out infinite; }
 
-        <h2 style="margin-top: 24px;">Generated WGSL</h2>
-        <div id="code-output">—</div>
-      </aside>
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes sweep { 0% { transform: translateX(-100%); } 55%,100% { transform: translateX(100%); } }
+
+  /* ---------- SECTIONS ---------- */
+  section { padding: 110px 28px; max-width: 1100px; margin: 0 auto; }
+  .sec-head { display: flex; align-items: baseline; gap: 16px; margin-bottom: 46px; }
+  .sec-head h2 {
+    font-family: var(--display); font-weight: 600;
+    font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.02em;
+  }
+  .sec-head .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; }
+  .rule { height: 1px; background: var(--line); margin: 0 auto; max-width: 1100px; }
+
+  /* work */
+  .work-grid { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .work-item {
+    background: var(--bg-soft);
+    padding: 30px 28px;
+    display: grid; grid-template-columns: 1fr auto; gap: 18px; align-items: start;
+    transition: background .15s;
+  }
+  .work-item:hover { background: #131313; }
+  .work-item .meta { min-width: 0; }
+  .work-item h3 { font-family: var(--display); font-size: 22px; font-weight: 600; letter-spacing: -0.01em; margin-bottom: 8px; }
+  .work-item h3 .arrow { color: var(--accent); opacity: 0; transform: translateX(-4px); transition: all .15s; display: inline-block; }
+  .work-item:hover h3 .arrow { opacity: 1; transform: translateX(0); }
+  .work-item p { color: var(--muted); font-size: 14px; max-width: 620px; }
+  .work-item .tags { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+  .tag { font-size: 10.5px; letter-spacing: 0.06em; color: var(--dim); border: 1px solid var(--line); padding: 3px 8px; }
+  .work-item .year { font-family: var(--mono); font-size: 12px; color: var(--dim); white-space: nowrap; }
+
+  /* about */
+  .about-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; }
+  .about-grid p { color: var(--muted); margin-bottom: 18px; max-width: 60ch; }
+  .about-grid p b { color: var(--fg); font-weight: 500; }
+  .stack h4 { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  .stack ul { list-style: none; }
+  .stack li { padding: 8px 0; border-bottom: 1px dashed var(--line); font-size: 13px; color: var(--muted); display: flex; justify-content: space-between; }
+  .stack li span { color: var(--dim); }
+
+  /* contact */
+  #contact { text-align: left; }
+  #contact .big {
+    font-family: var(--display); font-weight: 800;
+    font-size: clamp(34px, 7vw, 84px); line-height: 1; letter-spacing: -0.03em;
+    margin: 10px 0 30px;
+  }
+  #contact .big a { transition: color .15s; }
+  #contact .big a:hover { color: var(--accent); }
+  .contact-links { display: flex; gap: 26px; flex-wrap: wrap; font-size: 13px; }
+  .contact-links a { color: var(--muted); border-bottom: 1px solid var(--line); padding-bottom: 2px; transition: all .15s; }
+  .contact-links a:hover { color: var(--accent); border-color: var(--accent); }
+
+  footer { padding: 40px 28px; border-top: 1px solid var(--line); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; font-size: 11px; color: var(--dim); letter-spacing: 0.06em; }
+
+  @media (max-width: 760px) {
+    nav .links { display: none; }
+    .work-item { grid-template-columns: 1fr; }
+    .work-item .year { order: -1; }
+    .about-grid { grid-template-columns: 1fr; gap: 34px; }
+    section { padding: 80px 22px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; }
+    .hero-inner .eyebrow, h1.title .l1, h1.title .l2, .hero-inner .lede, .hero-cta, .scroll-cue { opacity: 1 !important; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="brand">YOUR_NAME<b>.</b>shader</div>
+  <div class="links">
+    <a href="#work">work</a>
+    <a href="#about">about</a>
+    <a href="#contact">contact</a>
+  </div>
+</nav>
+
+<!-- ============ HERO ============ -->
+<header id="hero">
+  <canvas id="grid-canvas"></canvas>
+  <div class="scrim"></div>
+  <div class="grain"></div>
+
+  <div class="hero-inner">
+    <div class="eyebrow mono-label">Technical Artist · Shader &amp; Tools Programmer</div>
+    <h1 class="title">
+      <span class="l1">I build the</span>
+      <span class="l2">pixels' rules.</span>
+    </h1>
+    <p class="lede">
+      Procedural graphics, real-time rendering, and the tools that make them.
+      The grid behind this text is generated live — a <b>probabilistic grammar</b>
+      composing shader expressions on the GPU, one of my ongoing experiments.
+    </p>
+    <div class="hero-cta">
+      <a class="btn solid" href="#work">View work →</a>
+      <a class="btn" href="#contact">Get in touch</a>
     </div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  </div>
+
+  <div class="scroll-cue">
+    <span class="bar"></span> SCROLL
+  </div>
+</header>
+
+<div class="rule"></div>
+
+<!-- ============ WORK ============ -->
+<section id="work">
+  <div class="sec-head">
+    <span class="idx">01 /</span>
+    <h2>Selected Work</h2>
+  </div>
+
+  <div class="work-grid">
+    <a class="work-item" href="/explorer.html">
+      <div class="meta">
+        <h3>Shader Explorer <span class="arrow">→</span></h3>
+        <p>A web port of my procedural shader-grammar pipeline: a weighted grammar
+           generates ASTs, an emitter translates them to WGSL, and a WebGPU renderer
+           draws the result live. Tweak operator weights, reseed, and watch the
+           generated code and AST update in real time.</p>
+        <div class="tags">
+          <span class="tag">TypeScript</span>
+          <span class="tag">WebGPU / WGSL</span>
+          <span class="tag">Procedural Generation</span>
+          <span class="tag">Vite</span>
+        </div>
+      </div>
+      <div class="year">2025 · LIVE DEMO</div>
+    </a>
+
+    <a class="work-item" href="#" target="_blank" rel="noopener">
+      <div class="meta">
+        <h3>Procedural Shader Grammar <span class="arrow">→</span></h3>
+        <p>Thesis project: a probabilistic context-free grammar for generating
+           shader expressions, with structural analysis of the output instead of
+           pixel-level metrics. Originally built in Godot / GDScript with a gallery
+           workflow for rating candidates.</p>
+        <div class="tags">
+          <span class="tag">Godot · GDScript</span>
+          <span class="tag">PCFG</span>
+          <span class="tag">GLSL</span>
+          <span class="tag">Research</span>
+        </div>
+      </div>
+      <div class="year">2024–25 · THESIS</div>
+    </a>
+
+    <a class="work-item" href="#" target="_blank" rel="noopener">
+      <div class="meta">
+        <h3>[ Project Title ] <span class="arrow">→</span></h3>
+        <p>Short description of another piece — a tool, a shader pack, a game jam
+           entry, a VFX breakdown. Swap this block for real work and link it out.</p>
+        <div class="tags">
+          <span class="tag">Tag</span>
+          <span class="tag">Tag</span>
+        </div>
+      </div>
+      <div class="year">YEAR</div>
+    </a>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ============ ABOUT ============ -->
+<section id="about">
+  <div class="sec-head">
+    <span class="idx">02 /</span>
+    <h2>About</h2>
+  </div>
+  <div class="about-grid">
+    <div>
+      <p>I'm a technical artist working at the seam between art and engineering —
+         <b>real-time rendering, procedural systems, and pipeline tooling</b>. I like
+         problems where a small amount of well-placed math produces a lot of visual
+         variety.</p>
+      <p>Recent work centers on <b>generative shaders</b>: treating shader code as
+         something a grammar can compose and an analyzer can reason about, rather than
+         something written one expression at a time. I care about reproducibility,
+         clean tooling, and demos people can actually poke at.</p>
+      <p>[ One or two sentences in your own voice — where you studied, what you're
+         looking for, what you nerd out about. ]</p>
+    </div>
+    <div class="stack">
+      <h4>Toolset</h4>
+      <ul>
+        <li>Shading <span>WGSL · GLSL · HLSL</span></li>
+        <li>Real-time <span>WebGPU · Godot · Unity</span></li>
+        <li>Languages <span>TypeScript · C# · Python</span></li>
+        <li>Procedural <span>PCFG · Noise · L-systems</span></li>
+        <li>Pipeline <span>Vite · Git · CI</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<div class="rule"></div>
+
+<!-- ============ CONTACT ============ -->
+<section id="contact">
+  <div class="sec-head">
+    <span class="idx">03 /</span>
+    <h2>Contact</h2>
+  </div>
+  <div class="big"><a href="mailto:you@example.com">you@example.com</a></div>
+  <div class="contact-links">
+    <a href="#" target="_blank" rel="noopener">GitHub ↗</a>
+    <a href="#" target="_blank" rel="noopener">ArtStation ↗</a>
+    <a href="#" target="_blank" rel="noopener">LinkedIn ↗</a>
+    <a href="#" target="_blank" rel="noopener">Résumé ↗</a>
+  </div>
+</section>
+
+<footer>
+  <span>© <span id="year"></span> YOUR NAME — built with WebGL2</span>
+  <span>Background: live procedural shader grid</span>
+</footer>
+
+<script type="module" src="/src/portfolio.ts"></script>
+</body>
 </html>
