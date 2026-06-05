@@ -13,7 +13,9 @@ import { emitGLSL } from './emitter-glsl';
 const TILE_PX = 220;     // target tile size in CSS px; smaller = more tiles
 const POOL = 48;         // how many distinct ASTs to generate (256 still fine)
 const DEPTH = 3;         // grammar recursion depth (3 reads well small, 4 busier)
-const MASTER_SEED = 73127; // change for a different fixed set; Math.random()*1e9 for fresh each load
+// Fresh set of shaders on every reload. To pin a fixed, reproducible set
+// instead, replace this with a constant number, e.g. const MASTER_SEED = 73127;
+const MASTER_SEED = Math.floor(Math.random() * 0xFFFFFFFF);
 
 const yearEl = document.getElementById('year');
 if (yearEl) yearEl.textContent = String(new Date().getFullYear());
