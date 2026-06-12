@@ -1,5 +1,19 @@
 // Minimal WebGPU renderer. Owns the device, swapchain, uniform buffer,
 // and a pipeline that is rebuilt each time the shader changes.
+// Live controls are plain fields written into the uniform buffer every
+// frame — moving a slider never rebuilds the pipeline.
+
+export interface Controls {
+  speed: number; zoom: number; panX: number; panY: number;
+  warp: number; intensity: number; hue: number; freq: number;
+  waves: number; vector: number; tiling: number; shaping: number;
+}
+
+export const DEFAULT_CONTROLS: Controls = {
+  speed: 1, zoom: 1, panX: 0, panY: 0,
+  warp: 0, intensity: 1, hue: 0, freq: 1,
+  waves: 1, vector: 1, tiling: 1, shaping: 1,
+};
 
 export class Renderer {
   private device!: GPUDevice;
@@ -9,9 +23,15 @@ export class Renderer {
   private bindGroupLayout!: GPUBindGroupLayout;
   private bindGroup!: GPUBindGroup;
   private pipeline: GPURenderPipeline | null = null;
-  private startTime = performance.now();
   private currentShader = '';
   private lastError: string | null = null;
+
+  // Live controls, set directly by the UI sliders in main.ts.
+  // speed is applied CPU-side: simTime accumulates dt * speed, so changing
+  // speed never makes the animation jump.
+  controls: Controls = { ...DEFAULT_CONTROLS };
+  private simTime = 0;
+  private lastFrame = performance.now();
 
   constructor(private canvas: HTMLCanvasElement) {}
 
@@ -34,9 +54,11 @@ export class Renderer {
       alphaMode: 'opaque',
     });
 
-    // 16 bytes: time, aspect, 2 pad floats
+    // 16 floats = 64 bytes — must match the Uniforms struct in emitter.ts:
+    // time, aspect, zoom, warp, intensity, hue, freq, panX, panY,
+    // waves, vector, tiling, shaping, 3 pads
     this.uniformBuffer = this.device.createBuffer({
-      size: 16,
+      size: 64,
       usage: GPUBufferUsage.UNIFORM | GPUBufferUsage.COPY_DST,
     });
 
@@ -52,6 +74,10 @@ export class Renderer {
       layout: this.bindGroupLayout,
       entries: [{ binding: 0, resource: { buffer: this.uniformBuffer } }],
     });
+  }
+
+  resetControls(): void {
+    this.controls = { ...DEFAULT_CONTROLS };
   }
 
   // Rebuilds the pipeline with a new WGSL source.
@@ -100,9 +126,19 @@ export class Renderer {
   render() {
     if (!this.pipeline) return;
 
-    const t = (performance.now() - this.startTime) / 1000;
+    const now = performance.now();
+    const dt = Math.min((now - this.lastFrame) / 1000, 0.1);
+    this.lastFrame = now;
+    this.simTime += dt * this.controls.speed;
+
+    const c = this.controls;
     const aspect = this.canvas.width / this.canvas.height;
-    const uniformData = new Float32Array([t, aspect, 0, 0]);
+    const uniformData = new Float32Array([
+      this.simTime, aspect, c.zoom, c.warp,
+      c.intensity, c.hue, c.freq, c.panX,
+      c.panY, c.waves, c.vector, c.tiling,
+      c.shaping, 0, 0, 0,
+    ]);
     this.device.queue.writeBuffer(this.uniformBuffer, 0, uniformData);
 
     const encoder = this.device.createCommandEncoder();

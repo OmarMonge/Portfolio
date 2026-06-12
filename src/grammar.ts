@@ -33,29 +33,40 @@ export class Grammar {
   // Terminal nodes: leaves of the expression tree.
   genTerminal(): ASTNode {
     const pick = this.weightedPick<TerminalName>(this.weights.terminals);
+    const uvScaled = (): ASTNode => ({
+      type: 'multiply',
+      left: { type: 'uv' },
+      right: { type: 'number', value: this.rng.randfRange(-20, 20) },
+    });
     switch (pick) {
       case 'x':
-        return {
-          type: 'component_x',
-          expr: {
-            type: 'multiply',
-            left: { type: 'uv' },
-            right: { type: 'number', value: this.rng.randfRange(-20, 20) },
-          },
-        };
+        return { type: 'component_x', expr: uvScaled() };
       case 'y':
-        return {
-          type: 'component_y',
-          expr: {
-            type: 'multiply',
-            left: { type: 'uv' },
-            right: { type: 'number', value: this.rng.randfRange(-20, 20) },
-          },
-        };
+        return { type: 'component_y', expr: uvScaled() };
       case 'time':
         return { type: 'time' };
       case 'constant':
         return { type: 'number', value: this.rng.randfRange(-1, 1) };
+      case 'polar_r':
+        return { type: 'multiply', left: { type: 'polar_r' }, right: { type: 'number', value: this.rng.randfRange(2, 15) } };
+      case 'polar_theta':
+        return { type: 'multiply', left: { type: 'polar_theta' }, right: { type: 'number', value: this.rng.randfRange(1, 8) } };
+      case 'spherical_x':
+        return { type: 'multiply', left: { type: 'spherical_x' }, right: { type: 'number', value: this.rng.randfRange(2, 10) } };
+      case 'spherical_y':
+        return { type: 'multiply', left: { type: 'spherical_y' }, right: { type: 'number', value: this.rng.randfRange(2, 10) } };
+      case 'spherical_z':
+        return { type: 'multiply', left: { type: 'spherical_z' }, right: { type: 'number', value: this.rng.randfRange(2, 10) } };
+      case 'mat_x': {
+        const angle = this.rng.randfRange(0, 6.28);
+        const s = this.rng.randfRange(1, 15);
+        return { type: 'mat_x', a: Math.cos(angle) * s, b: -Math.sin(angle) * s };
+      }
+      case 'mat_y': {
+        const angle = this.rng.randfRange(0, 6.28);
+        const s = this.rng.randfRange(1, 15);
+        return { type: 'mat_y', c: Math.sin(angle) * s, d: Math.cos(angle) * s };
+      }
     }
   }
 
@@ -80,6 +91,21 @@ export class Grammar {
       case 'mix':      return { type: 'mix', a: child(), b: child(), t: child() };
       case 'hash':     return { type: 'hash', expr: child() };
       case 'floor':    return { type: 'floor', expr: child() };
+      case 'length_vec2': return { type: 'length_vec2', left: child(), right: child() };
+      case 'min':      return { type: 'min', left: child(), right: child() };
+      case 'max':      return { type: 'max', left: child(), right: child() };
+      case 'exp':      return { type: 'exp', expr: child() };
+      case 'pow':      return { type: 'pow', base: child(), exponent: { type: 'number', value: this.rng.randfRange(0.5, 3.0) } };
+      case 'smoothstep': {
+        const e0 = this.rng.randfRange(0.0, 0.5);
+        return {
+          type: 'smoothstep',
+          edge0: { type: 'number', value: e0 },
+          edge1: { type: 'number', value: e0 + this.rng.randfRange(0.2, 0.5) },
+          value: child(),
+        };
+      }
+      case 'atan2':    return { type: 'atan2', y: child(), x: child() };
     }
   }
 

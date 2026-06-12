@@ -3,12 +3,11 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Omar — Technical Artist</title>
+<title>YOUR NAME — Technical Artist</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-  @view-transition { navigation: auto; }
   :root {
     --bg: #0a0a0a;
     --bg-soft: #0f0f0f;
@@ -133,19 +132,8 @@
   .scroll-cue .bar { width: 38px; height: 1px; background: var(--dim); position: relative; overflow: hidden; }
   .scroll-cue .bar::after { content:""; position:absolute; inset:0; background: var(--accent); transform: translateX(-100%); animation: sweep 2.4s ease-in-out infinite; }
 
-  /* live uniforms readout — values come from the actual render loop */
-  .hud {
-    position: absolute; z-index: 3; bottom: 26px; right: 28px;
-    font-size: 11px; letter-spacing: 0.06em; line-height: 1.9;
-    color: var(--dim);
-    opacity: 0; animation: rise 1s 1.1s forwards;
-  }
-  .hud .k { display: inline-block; min-width: 62px; color: var(--dim); }
-  .hud b { color: var(--muted); font-weight: 500; }
-
   @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes sweep { 0% { transform: translateX(-100%); } 55%,100% { transform: translateX(100%); } }
-  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 
   /* ---------- SECTIONS ---------- */
   section { padding: 110px 28px; max-width: 1100px; margin: 0 auto; }
@@ -154,7 +142,7 @@
     font-family: var(--display); font-weight: 600;
     font-size: clamp(26px, 4vw, 40px); letter-spacing: -0.02em;
   }
-  .sec-head .idx { font-family: var(--mono); font-size: 14px; color: var(--accent); letter-spacing: 0.1em; }
+  .sec-head .idx { font-family: var(--mono); font-size: 12px; color: var(--accent); letter-spacing: 0.1em; }
   .rule { height: 1px; background: var(--line); margin: 0 auto; max-width: 1100px; }
 
   /* work */
@@ -174,11 +162,6 @@
   .work-item .tags { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
   .tag { font-size: 10.5px; letter-spacing: 0.06em; color: var(--dim); border: 1px solid var(--line); padding: 3px 8px; }
   .work-item .year { font-family: var(--mono); font-size: 12px; color: var(--dim); white-space: nowrap; }
-  .live-dot {
-    display: inline-block; width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent); margin-right: 7px; vertical-align: 1px;
-    animation: pulse 1.8s ease-in-out infinite;
-  }
 
   /* about */
   .about-grid { display: grid; grid-template-columns: 1.3fr 1fr; gap: 48px; }
@@ -206,7 +189,6 @@
 
   @media (max-width: 760px) {
     nav .links { display: none; }
-    .hud { display: none; }
     .work-item { grid-template-columns: 1fr; }
     .work-item .year { order: -1; }
     .about-grid { grid-template-columns: 1fr; gap: 34px; }
@@ -214,14 +196,14 @@
   }
   @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; }
-    .hero-inner .eyebrow, h1.title .l1, h1.title .l2, .hero-inner .lede, .hero-cta, .scroll-cue, .hud { opacity: 1 !important; }
+    .hero-inner .eyebrow, h1.title .l1, h1.title .l2, .hero-inner .lede, .hero-cta, .scroll-cue { opacity: 1 !important; }
   }
 </style>
 </head>
 <body>
 
 <nav>
-  <div class="brand">omar<b>.</b>shader</div>
+  <div class="brand">YOUR_NAME<b>.</b>shader</div>
   <div class="links">
     <a href="#work">work</a>
     <a href="#about">about</a>
@@ -238,14 +220,13 @@
   <div class="hero-inner">
     <div class="eyebrow mono-label">Technical Artist · Shader &amp; Tools Programmer</div>
     <h1 class="title">
-      <span class="l1">Math in,</span>
-      <span class="l2">motion out.</span>
+      <span class="l1">I build the</span>
+      <span class="l2">pixels' rules.</span>
     </h1>
     <p class="lede">
       Procedural graphics, real-time rendering, and the tools that make them.
-      Behind this text, one grammar does both jobs: it wrote the <b>height
-      function</b> of this landscape and the <b>shader tiles</b> draped across
-      it. Every patch is a real generated program. Reseeded on every load.
+      The grid behind this text is generated live — a <b>probabilistic grammar</b>
+      composing shader expressions on the GPU, one of my ongoing experiments.
     </p>
     <div class="hero-cta">
       <a class="btn solid" href="#work">View work →</a>
@@ -256,9 +237,6 @@
   <div class="scroll-cue">
     <span class="bar"></span> SCROLL
   </div>
-
-  <!-- populated by src/portfolio.ts with the real uniform values -->
-  <div class="hud" id="shader-hud" aria-hidden="true"></div>
 </header>
 
 <div class="rule"></div>
@@ -266,12 +244,12 @@
 <!-- ============ WORK ============ -->
 <section id="work">
   <div class="sec-head">
-    <span class="idx">//</span>
+    <span class="idx">01 /</span>
     <h2>Selected Work</h2>
   </div>
 
   <div class="work-grid">
-    <a class="work-item" href="/explorer.html">
+    <a class="work-item" href="#" target="_blank" rel="noopener">
       <div class="meta">
         <h3>Shader Explorer <span class="arrow">→</span></h3>
         <p>A web port of my procedural shader-grammar pipeline: a weighted grammar
@@ -285,24 +263,7 @@
           <span class="tag">Vite</span>
         </div>
       </div>
-      <div class="year"><span class="live-dot"></span>LIVE · 2025</div>
-    </a>
-
-    <a class="work-item" href="/terrain.html">
-      <div class="meta">
-        <h3>Generated Terrain <span class="arrow">→</span></h3>
-        <p>A 3D heightfield whose displacement function is written by the same
-           grammar. Candidates are screened by structural analysis plus a CPU
-           probe, normalized, and displaced in the vertex shader — hand-rolled
-           WebGL2 pipeline, matrices and mesh included. New landscape every load.</p>
-        <div class="tags">
-          <span class="tag">WebGL2</span>
-          <span class="tag">Vertex Displacement</span>
-          <span class="tag">Procedural Generation</span>
-          <span class="tag">TypeScript</span>
-        </div>
-      </div>
-      <div class="year"><span class="live-dot"></span>LIVE · 2026</div>
+      <div class="year">2025 · LIVE DEMO</div>
     </a>
 
     <a class="work-item" href="#" target="_blank" rel="noopener">
@@ -342,7 +303,7 @@
 <!-- ============ ABOUT ============ -->
 <section id="about">
   <div class="sec-head">
-    <span class="idx">//</span>
+    <span class="idx">02 /</span>
     <h2>About</h2>
   </div>
   <div class="about-grid">
@@ -376,7 +337,7 @@
 <!-- ============ CONTACT ============ -->
 <section id="contact">
   <div class="sec-head">
-    <span class="idx">//</span>
+    <span class="idx">03 /</span>
     <h2>Contact</h2>
   </div>
   <div class="big"><a href="mailto:you@example.com">you@example.com</a></div>
@@ -389,10 +350,278 @@
 </section>
 
 <footer>
-  <span>© <span id="year"></span> Omar — no framework, hand-rolled WebGL2</span>
-  <span>background: generated tiles on a generated heightfield</span>
+  <span>© <span id="year"></span> YOUR NAME — built with WebGL2</span>
+  <span>Background: live procedural shader grid</span>
 </footer>
 
-<script type="module" src="/src/portfolio.ts"></script>
+<script>
+/* =========================================================================
+   HERO BACKGROUND — one WebGL2 canvas, subdivided into a grid of tiles.
+   Every tile is a REAL output of your shader grammar: at page load we
+   generate a pool of ASTs (same grammar + weights as the Shader Explorer),
+   emit each one as a GLSL expression, and bake them into one background
+   shader. Tile -> AST is chosen by a hash of the cell, so it works at any
+   grid size.
+
+   >>> THINGS YOU CAN SAFELY CHANGE <<<
+     TILE_PX     target tile size in CSS px. Smaller = more tiles on screen.
+                   ~220 -> legible grid of thumbnails (default)
+                   ~90  -> dense "contact sheet" (~256 tiles on a big screen)
+     POOL        how many distinct ASTs to generate (more variety = bigger
+                   shader; 48 is a comfortable default, 256 still compiles).
+     DEPTH       grammar recursion depth. 3 reads well small; 4 is busier.
+     MASTER_SEED change this number for a different-but-fixed set of shaders.
+                   Use  Math.floor(Math.random()*1e9)  for fresh ones each load.
+   ========================================================================= */
+const TILE_PX = 220;
+const POOL = 48;
+const DEPTH = 3;
+const MASTER_SEED = 73127;
+
+document.getElementById('year').textContent = new Date().getFullYear();
+
+/* ---------- seeded RNG (mulberry32), ported from src/rng.ts ---------- */
+class RNG {
+  constructor(seed) { this.state = (seed >>> 0) || 1; }
+  randf() {
+    let t = (this.state += 0x6D2B79F5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  }
+  randfRange(min, max) { return min + this.randf() * (max - min); }
+}
+
+/* ---------- default weights, from src/ast.ts ---------- */
+const WEIGHTS = {
+  operators: {
+    sin: 0.20, cos: 0.20, add: 0.15, multiply: 0.15,
+    mod: 0.10, step: 0.10, dot: 0.08, fract: 0.04,
+    abs: 0.04, clamp: 0.02, mix: 0.04, hash: 0.02, floor: 0.06,
+  },
+  terminals: { x: 0.30, y: 0.30, time: 0.25, constant: 0.15 },
+};
+
+/* ---------- grammar, ported from src/grammar.ts ---------- */
+class Grammar {
+  constructor(rng, weights) { this.rng = rng; this.weights = weights; }
+  weightedPick(map) {
+    const entries = Object.entries(map).filter(([, w]) => w > 0).sort((a, b) => b[1] - a[1]);
+    const total = entries.reduce((s, [, w]) => s + w, 0);
+    if (total <= 0) return entries[0][0];
+    const roll = this.rng.randf() * total;
+    let cum = 0;
+    for (const [k, w] of entries) { cum += w; if (roll < cum) return k; }
+    return entries[entries.length - 1][0];
+  }
+  genTerminal() {
+    const pick = this.weightedPick(this.weights.terminals);
+    const uvMul = () => ({ type: 'multiply', left: { type: 'uv' },
+      right: { type: 'number', value: this.rng.randfRange(-20, 20) } });
+    switch (pick) {
+      case 'x': return { type: 'component_x', expr: uvMul() };
+      case 'y': return { type: 'component_y', expr: uvMul() };
+      case 'time': return { type: 'time' };
+      case 'constant': return { type: 'number', value: this.rng.randfRange(-1, 1) };
+    }
+  }
+  genFloatExpr(depth) {
+    if (depth <= 0) return this.genTerminal();
+    const pick = this.weightedPick(this.weights.operators);
+    const c = () => this.genFloatExpr(depth - 1);
+    switch (pick) {
+      case 'sin': return { type: 'sin', expr: c() };
+      case 'cos': return { type: 'cos', expr: c() };
+      case 'add': return { type: 'add', left: c(), right: c() };
+      case 'multiply': return { type: 'multiply', left: c(), right: c() };
+      case 'mod': return { type: 'mod', left: c(), right: { type: 'number', value: this.rng.randfRange(0.5, 3.0) } };
+      case 'step': return { type: 'step', edge: { type: 'number', value: this.rng.randfRange(0, 1) }, value: c() };
+      case 'dot': return { type: 'dot', left: c(), right: c() };
+      case 'fract': return { type: 'fract', expr: c() };
+      case 'abs': return { type: 'abs', expr: c() };
+      case 'clamp': return { type: 'clamp', expr: c(), min: { type: 'number', value: 0 }, max: { type: 'number', value: 1 } };
+      case 'mix': return { type: 'mix', a: c(), b: c(), t: c() };
+      case 'hash': return { type: 'hash', expr: c() };
+      case 'floor': return { type: 'floor', expr: c() };
+    }
+  }
+  genShaderAST(depth) {
+    return { type: 'assign_color', expr: {
+      type: 'vec4_rgb',
+      r: this.genFloatExpr(depth),
+      g: this.genFloatExpr(depth),
+      b: this.genFloatExpr(depth),
+    } };
+  }
+}
+
+/* ---------- GLSL emitter (the WGSL emitter from src/emitter.ts, retargeted
+              to GLSL ES 3.00). Each AST becomes a vec3 expression. ---------- */
+function fnum(n) {
+  if (!isFinite(n)) return '0.0';
+  let s = n.toFixed(6);
+  return s;
+}
+function emit(node) {
+  switch (node.type) {
+    case 'uv': return 'uv';
+    case 'time': return 'u_time';
+    case 'number': return fnum(node.value);
+    case 'component_x': return `(${emit(node.expr)}).x`;
+    case 'component_y': return `(${emit(node.expr)}).y`;
+    case 'multiply': return `(${emit(node.left)} * ${emit(node.right)})`;
+    case 'add': return `((${emit(node.left)} + ${emit(node.right)}) * 0.5)`;
+    case 'floor': return `floor(${emit(node.expr)})`;
+    case 'sin': return `sin(${emit(node.expr)})`;
+    case 'cos': return `cos(${emit(node.expr)})`;
+    case 'mod': { const a = emit(node.left), b = emit(node.right);
+      return `(${a} - ${b} * floor(${a} / ${b}))`; }
+    case 'step': return `step(${emit(node.edge)}, ${emit(node.value)})`;
+    case 'mix': return `mix(${emit(node.a)}, ${emit(node.b)}, clamp(${emit(node.t)}, 0.0, 1.0))`;
+    case 'dot': return `dot(vec2(${emit(node.left)}), vec2(${emit(node.right)}))`;
+    case 'fract': return `fract(${emit(node.expr)})`;
+    case 'abs': return `abs(${emit(node.expr)})`;
+    case 'clamp': return `clamp(${emit(node.expr)}, ${emit(node.min)}, ${emit(node.max)})`;
+    case 'hash': return `fract(sin(${emit(node.expr)} * 43758.5453))`;
+    case 'vec4_rgb': return `vec3(${emit(node.r)}, ${emit(node.g)}, ${emit(node.b)})`;
+    case 'assign_color': return emit(node.expr);
+  }
+}
+
+/* ---------- generate the pool of real shaders ---------- */
+const tileExprs = [];
+for (let i = 0; i < POOL; i++) {
+  const rng = new RNG((MASTER_SEED + i * 2654435761) >>> 0);
+  const ast = new Grammar(rng, WEIGHTS).genShaderAST(DEPTH);
+  tileExprs.push(emit(ast));
+}
+let branches = '';
+tileExprs.forEach((e, i) => {
+  branches += `  ${i ? 'else ' : ''}if (idx == ${i}) { c = ${e}; }\n`;
+});
+
+/* ---------- WebGL2 setup ---------- */
+const canvas = document.getElementById('grid-canvas');
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const gl = canvas.getContext('webgl2', { antialias: true, alpha: false });
+
+function gradientFallback() {
+  canvas.style.background =
+    'radial-gradient(140% 120% at 25% 30%, #11313d 0%, #0c1416 45%, #0a0a0a 100%)';
+}
+
+if (!gl) {
+  gradientFallback();
+} else {
+  const VERT = `#version 300 es
+  in vec2 p;
+  void main() { gl_Position = vec4(p, 0.0, 1.0); }`;
+
+  const FRAG = `#version 300 es
+  precision highp float;
+  out vec4 fragColor;
+  uniform vec2 u_res;
+  uniform float u_time;
+  uniform float u_tilepx;
+
+  float hash21(vec2 p){
+    p = fract(p * vec2(123.34, 345.45));
+    p += dot(p, p + 34.345);
+    return fract(p.x * p.y);
+  }
+
+  // every branch below is one generated AST, emitted to GLSL
+  vec3 tileColor(int idx, vec2 uv){
+    vec3 c = vec3(0.0);
+${branches}    return c;
+  }
+
+  void main(){
+    vec2 uv = gl_FragCoord.xy / u_res;
+    vec2 grid = max(vec2(2.0, 1.0), floor(u_res / u_tilepx));
+    vec2 g = uv * grid;
+    vec2 cell = floor(g);
+    vec2 f = fract(g);                       // local coords 0..1 in the tile
+
+    int idx = int(hash21(cell + 0.5) * float(${POOL}));
+    idx = idx % ${POOL};
+
+    vec3 col = tileColor(idx, f);            // <-- real grammar output
+    col = clamp(col * 0.5 + 0.5, 0.0, 1.0);  // signed range -> viewable
+
+    // gutters: fade each tile to black at its edges for clean grid lines
+    vec2 gut = smoothstep(0.0, 0.045, f) * smoothstep(0.0, 0.045, 1.0 - f);
+    col *= gut.x * gut.y;
+
+    col *= 0.6;                              // keep it a background
+    float vig = 1.0 - 0.65 * length(uv - 0.5);
+    col *= clamp(vig, 0.0, 1.0);
+
+    fragColor = vec4(col, 1.0);
+  }`;
+
+  function compile(type, src) {
+    const s = gl.createShader(type);
+    gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+      console.warn('shader compile error:\n' + gl.getShaderInfoLog(s));
+      return null;
+    }
+    return s;
+  }
+
+  const vs = compile(gl.VERTEX_SHADER, VERT);
+  const fs = compile(gl.FRAGMENT_SHADER, FRAG);
+
+  if (!vs || !fs) {
+    gradientFallback();                      // emitter bug? never show black
+  } else {
+    const prog = gl.createProgram();
+    gl.attachShader(prog, vs); gl.attachShader(prog, fs);
+    gl.linkProgram(prog); gl.useProgram(prog);
+
+    const vbo = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+    const loc = gl.getAttribLocation(prog, 'p');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+
+    const uRes = gl.getUniformLocation(prog, 'u_res');
+    const uTime = gl.getUniformLocation(prog, 'u_time');
+    const uTile = gl.getUniformLocation(prog, 'u_tilepx');
+
+    let dpr = 1;
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const w = Math.floor(canvas.clientWidth * dpr);
+      const h = Math.floor(canvas.clientHeight * dpr);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w; canvas.height = h;
+        gl.viewport(0, 0, w, h);
+      }
+      gl.uniform2f(uRes, w, h);
+      gl.uniform1f(uTile, TILE_PX * dpr);
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const start = performance.now();
+    let visible = true;
+    function frame() {
+      if (!visible) return;
+      resize();
+      gl.uniform1f(uTime, reduceMotion ? 8.0 : (performance.now() - start) / 1000);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      if (!reduceMotion) requestAnimationFrame(frame);
+    }
+    document.addEventListener('visibilitychange', () => {
+      visible = !document.hidden;
+      if (visible && !reduceMotion) frame();
+    });
+    frame();
+  }
+}
+</script>
 </body>
 </html>

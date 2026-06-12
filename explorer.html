@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Shader Explorer</title>
     <style>
+      @view-transition { navigation: auto; }
       * { box-sizing: border-box; margin: 0; padding: 0; }
       body {
         font-family: ui-monospace, 'SF Mono', Menlo, monospace;
@@ -32,6 +33,16 @@
         color: #888;
         margin-bottom: 12px;
       }
+      .back-link {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: #666;
+        text-decoration: none;
+        margin-bottom: 16px;
+        transition: color 0.1s;
+      }
+      .back-link:hover { color: #5cf; }
       #canvas-container {
         display: flex;
         align-items: center;
@@ -111,9 +122,14 @@
         font-size: 11px;
         line-height: 1.5;
         color: #aaa;
-        white-space: pre;
         font-family: ui-monospace, monospace;
       }
+      .ast-row { padding: 1px 4px; border-radius: 2px; color: #888; }
+      .ast-row.mutable { color: #ccc; cursor: pointer; }
+      .ast-row.mutable:hover { background: #14242c; color: #5cf; }
+      .tree-hint { font-size: 10px; color: #555; margin-bottom: 8px; line-height: 1.5; }
+      .control .desc { font-size: 10px; color: #555; margin-top: 3px; line-height: 1.4; }
+      h2 .note { text-transform: none; letter-spacing: 0.02em; color: #555; font-size: 10px; margin-left: 6px; }
       .stats { font-size: 11px; color: #888; line-height: 1.6; }
       .stats span { color: #5cf; }
     </style>
@@ -121,6 +137,7 @@
   <body>
     <div id="app">
       <aside class="panel" id="controls-panel">
+        <a class="back-link" href="/">← omar.shader</a>
         <h2>Controls</h2>
         <div class="control">
           <label>Seed <span id="seed-value">—</span></label>
@@ -133,8 +150,19 @@
         <button class="primary" id="regenerate-btn">Regenerate (G)</button>
         <button id="reset-weights-btn">Reset weights</button>
 
-        <h2 style="margin-top: 24px;">Operator weights</h2>
+        <h2 style="margin-top: 24px;">Live controls <span class="note">real-time · no regenerate needed</span></h2>
+        <div id="live-controls"></div>
+        <button id="reset-live-btn">Reset live controls</button>
+
+        <h2 style="margin-top: 24px;">Bands <span class="note">1 = normal · 0 = silence · 2 = emphasize</span></h2>
+        <div id="band-controls"></div>
+
+        <h2 style="margin-top: 24px;">Operator weights <span class="note">press G to apply</span></h2>
         <div id="operator-weights"></div>
+
+        <h2 style="margin-top: 24px;">Terminal weights</h2>
+        <div class="tree-hint">drop polar_* / spherical_* to avoid those · press G to apply</div>
+        <div id="terminal-weights"></div>
 
         <h2 style="margin-top: 24px;">Stats</h2>
         <div class="stats" id="stats-output">—</div>
@@ -147,6 +175,8 @@
 
       <aside class="panel" id="inspector-panel">
         <h2>AST</h2>
+        <div class="tree-hint">click any highlighted node to regrow that subtree
+        with the current weights — structure-level editing, no typing</div>
         <div id="ast-tree">—</div>
 
         <h2 style="margin-top: 24px;">Generated WGSL</h2>

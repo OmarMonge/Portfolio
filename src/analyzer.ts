@@ -43,12 +43,33 @@ function walk(node: ASTNode, stats: ASTStats, depth: number) {
       stats.hasY = true;
       walk(node.expr, stats, depth + 1);
       break;
-    case 'sin': case 'cos': case 'floor': case 'fract': case 'abs': case 'hash':
+    case 'sin': case 'cos': case 'floor': case 'fract': case 'abs': case 'hash': case 'exp':
       walk(node.expr, stats, depth + 1);
       break;
     case 'add': case 'multiply': case 'mod': case 'dot':
+    case 'length_vec2': case 'min': case 'max':
       walk(node.left, stats, depth + 1);
       walk(node.right, stats, depth + 1);
+      break;
+    case 'pow':
+      walk(node.base, stats, depth + 1);
+      walk(node.exponent, stats, depth + 1);
+      break;
+    case 'smoothstep':
+      walk(node.edge0, stats, depth + 1);
+      walk(node.edge1, stats, depth + 1);
+      walk(node.value, stats, depth + 1);
+      break;
+    case 'atan2':
+      walk(node.y, stats, depth + 1);
+      walk(node.x, stats, depth + 1);
+      break;
+    case 'polar_r': case 'polar_theta':
+    case 'spherical_x': case 'spherical_y': case 'spherical_z':
+    case 'mat_x': case 'mat_y':
+      // projection terminals depend on both spatial axes
+      stats.hasX = true;
+      stats.hasY = true;
       break;
     case 'step':
       walk(node.edge, stats, depth + 1);
@@ -77,7 +98,8 @@ function walk(node: ASTNode, stats: ASTStats, depth: number) {
 }
 
 // Pretty-print the AST as a text tree (ASCII art) for display.
-// Next step: replace this with an interactive D3/canvas renderer.
+// (The explorer now uses src/tree-view.ts for the interactive version;
+// this stays for logging / debugging.)
 export function astToText(node: ASTNode, indent = '', isLast = true): string {
   const prefix = indent + (isLast ? '└─ ' : '├─ ');
   const nextIndent = indent + (isLast ? '   ' : '│  ');
@@ -96,10 +118,17 @@ export function astToText(node: ASTNode, indent = '', isLast = true): string {
 function getChildren(node: ASTNode): [string, ASTNode][] {
   switch (node.type) {
     case 'component_x': case 'component_y':
-    case 'sin': case 'cos': case 'floor': case 'fract': case 'abs': case 'hash':
+    case 'sin': case 'cos': case 'floor': case 'fract': case 'abs': case 'hash': case 'exp':
       return [['expr', node.expr]];
     case 'add': case 'multiply': case 'mod': case 'dot':
+    case 'length_vec2': case 'min': case 'max':
       return [['left', node.left], ['right', node.right]];
+    case 'pow':
+      return [['base', node.base], ['exponent', node.exponent]];
+    case 'smoothstep':
+      return [['edge0', node.edge0], ['edge1', node.edge1], ['value', node.value]];
+    case 'atan2':
+      return [['y', node.y], ['x', node.x]];
     case 'step':
       return [['edge', node.edge], ['value', node.value]];
     case 'mix':
