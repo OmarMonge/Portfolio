@@ -13,7 +13,8 @@ export default defineConfig({
       input: {
         home: resolve(root, 'index.html'),        // the portfolio (front page)
         explorer: resolve(root, 'explorer.html'), // the Shader Explorer tool
-        terrain: resolve(root, 'terrain.html'),   // the Generated Terrain page
+        terrain: resolve(root, 'terrain.html'),   // the Generated 
+        fractals: resolve(root, 'fractals.html'), // the Fractal Visualizer pageTerrain page
         // future project pages go here, e.g.:
         // models: resolve(root, 'models.html'),
       },

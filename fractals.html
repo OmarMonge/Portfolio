@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fractal Visualizer — Omar</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  @view-transition { navigation: auto; }
+  :root {
+    --bg: #0a0a0a; --fg: #ececec; --muted: #8a8a8a; --dim: #5a5a5a; --accent: #5cf;
+    --display: "Bricolage Grotesque", ui-sans-serif, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--mono); overflow: hidden; }
+  a { color: inherit; text-decoration: none; }
+
+  #grid-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+
+  .back {
+    position: fixed; top: 20px; left: 24px; z-index: 5;
+    font-size: 12px; letter-spacing: 0.1em; color: var(--muted); transition: color .15s;
+  }
+  .back:hover { color: var(--accent); }
+
+  .caption {
+    position: fixed; left: 24px; bottom: 24px; z-index: 5; max-width: 460px;
+  }
+  .caption h1 {
+    font-family: var(--display); font-weight: 800; font-size: 28px;
+    letter-spacing: -0.02em; margin-bottom: 8px;
+  }
+  .caption p { font-size: 12px; line-height: 1.7; color: var(--muted); }
+  .caption p b { color: var(--fg); font-weight: 500; }
+
+  /* controls — mono pills, same accent-on-hover language as .back */
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-top: 14px; }
+  .controls button, .controls label.file {
+    cursor: pointer; background: transparent; color: var(--muted);
+    border: 1px solid #2a2a2a; border-radius: 2px; padding: 6px 10px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; transition: all .15s;
+  }
+  .controls button:hover, .controls label.file:hover { color: var(--accent); border-color: var(--accent); }
+  .controls .react { display: flex; gap: 8px; align-items: center; color: var(--dim); font-size: 11px; letter-spacing: 0.06em; }
+  .controls input[type="range"] { accent-color: var(--accent); width: 96px; }
+
+  .keyshint { margin-top: 9px; font-size: 11px; color: var(--dim); letter-spacing: 0.06em; }
+  .keyshint kbd { border: 1px solid #2a2a2a; padding: 1px 6px; border-radius: 2px;
+    font-family: var(--mono); color: var(--muted); }
+
+  .hud {
+    position: fixed; bottom: 24px; right: 24px; z-index: 5;
+    font-size: 11px; letter-spacing: 0.06em; line-height: 1.9; color: var(--dim);
+    text-align: right;
+  }
+  .hud .k { display: inline-block; min-width: 56px; color: var(--dim); }
+  .hud b { color: var(--muted); font-weight: 500; }
+  .hud .live { margin-top: 6px; display: inline-flex; gap: 7px; align-items: center;
+    color: var(--dim); letter-spacing: 0.12em; }
+  .hud .live .dot { width: 7px; height: 7px; border-radius: 50%; background: #242424; }
+  .hud .live.on { color: var(--accent); }
+  .hud .live.on .dot { background: var(--accent); box-shadow: 0 0 10px var(--accent);
+    animation: pulse 1.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .35; } }
+
+  #status { color: var(--dim); font-size: 11px; letter-spacing: 0.06em; }
+
+  @media (max-width: 760px) { .hud { display: none; } .caption { max-width: 80vw; } }
+  @media (prefers-reduced-motion: reduce) { .hud .live.on .dot { animation: none; } }
+</style>
+</head>
+<body>
+<canvas id="grid-canvas"></canvas>
+
+<a class="back" href="/">← omar.shader</a>
+
+<div class="caption">
+  <h1>Fractal Visualizer</h1>
+  <p>Distance-estimated <b>SDF fractals</b> raymarched in real time — Mandelbulb
+     and KIFS. The FFT of whatever you play is split into <b>bass / mid / high</b>
+     bands that drive the shader's uniforms, morphing the surface to the music.
+     Ported from my Unity VJ tool — <b>hand-rolled WebGL2</b>.</p>
+
+  <div class="controls">
+    <button id="scene">scene: mandelbulb</button>
+    <button id="mic">use mic</button>
+    <label class="file" id="loadtrack">load track</label>
+    <input id="file" type="file" accept="audio/*" hidden />
+    <a class="file" id="source" href="https://github.com/OmarMonge/FractalVisualUnity" target="_blank" rel="noopener">source ↗</a>
+    <span class="react">reactivity
+      <input id="react" type="range" min="0" max="2.5" step="0.05" value="1" />
+    </span>
+    <span id="status"></span>
+  </div>
+  <div class="keyshint">click scene or press <kbd>1</kbd>–<kbd>5</kbd></div>
+</div>
+
+<div class="hud" id="shader-hud" aria-hidden="true">
+  <div><span class="k">bass</span><b id="hud-bass">0.00</b></div>
+  <div><span class="k">mid</span><b id="hud-mid">0.00</b></div>
+  <div><span class="k">high</span><b id="hud-high">0.00</b></div>
+  <div><span class="k">energy</span><b id="hud-energy">0.00</b></div>
+  <div class="live" id="live"><span class="dot"></span>LIVE</div>
+</div>
+
+<script type="module" src="/src/fractals.ts"></script>
+</body>
+</html>

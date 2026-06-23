@@ -132,6 +132,9 @@
       h2 .note { text-transform: none; letter-spacing: 0.02em; color: #555; font-size: 10px; margin-left: 6px; }
       .stats { font-size: 11px; color: #888; line-height: 1.6; }
       .stats span { color: #5cf; }
+      .related-link { display: inline-block; font-size: 11px; letter-spacing: 0.05em; color: #666; text-decoration: none; transition: color 0.1s; }
+      .related-link:hover { color: #5cf; }
+      .audio-driven { opacity: 0.45; pointer-events: none; }
     </style>
   </head>
   <body>
@@ -157,6 +160,15 @@
         <h2 style="margin-top: 24px;">Bands <span class="note">1 = normal · 0 = silence · 2 = emphasize</span></h2>
         <div id="band-controls"></div>
 
+        <h2 style="margin-top: 24px;">Drive with music <span class="note">FFT → bands</span></h2>
+        <div id="audio-controls">
+          <button id="audio-toggle">Drive with music</button>
+          <button id="audio-mic">Use mic</button>
+          <button id="audio-file">Load track</button>
+          <input type="file" id="audio-file-input" accept="audio/*" hidden />
+          <div class="desc" id="audio-status"></div>
+        </div>
+
         <h2 style="margin-top: 24px;">Operator weights <span class="note">press G to apply</span></h2>
         <div id="operator-weights"></div>
 
@@ -166,6 +178,9 @@
 
         <h2 style="margin-top: 24px;">Stats</h2>
         <div class="stats" id="stats-output">—</div>
+
+        <h2 style="margin-top: 24px;">Related</h2>
+        <a class="related-link" href="REPLACE_WITH_MIDI_PROJECT_URL" target="_blank" rel="noopener">Live MIDI VJ — Godot ↗</a>
       </aside>
 
       <main id="canvas-container">

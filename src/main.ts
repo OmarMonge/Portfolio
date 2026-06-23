@@ -10,6 +10,7 @@ import { buildShaderModule } from './emitter';
 import { analyzeAST } from './analyzer';
 import { renderTree, replaceAtPath } from './tree-view';
 import { Renderer, DEFAULT_CONTROLS, type Controls } from './renderer';
+import { AudioReactive } from './audio-reactive';
 
 // --- State ---
 const weights: Weights = structuredClone(DEFAULT_WEIGHTS);
@@ -38,9 +39,17 @@ const terminalWeightsDiv = document.getElementById('terminal-weights') as HTMLDi
 const astTreeDiv = document.getElementById('ast-tree') as HTMLDivElement;
 const codeOutputDiv = document.getElementById('code-output') as HTMLDivElement;
 const statsDiv = document.getElementById('stats-output') as HTMLDivElement;
+const audioToggle = document.getElementById('audio-toggle') as HTMLButtonElement;
+const audioMicBtn = document.getElementById('audio-mic') as HTMLButtonElement;
+const audioFileBtn = document.getElementById('audio-file') as HTMLButtonElement;
+const audioFileInput = document.getElementById('audio-file-input') as HTMLInputElement;
+const audioStatus = document.getElementById('audio-status') as HTMLSpanElement;
 
 // --- Renderer ---
 const renderer = new Renderer(canvas);
+
+// --- Audio reactivity: feed live FFT bands into renderer.controls (fft_mode) ---
+const audio = new AudioReactive(renderer);
 
 // --- Live control definitions (instant — written to the uniform buffer) ---
 interface LiveDef { key: keyof Controls; min: number; max: number; step: number; desc: string; }
@@ -68,6 +77,7 @@ async function boot() {
     await renderer.init();
     renderer.startLoop();
     buildLiveSliders();
+    setupAudio();
     buildWeightSliders();
     buildTerminalSliders();
     regenerate();
@@ -110,6 +120,39 @@ function buildLiveSliders() {
 function resetLiveControls() {
   renderer.controls = { ...DEFAULT_CONTROLS };
   buildLiveSliders();
+}
+
+// --- Drive the Bands with live FFT (the browser version of fft_mode) ---
+function setupAudio() {
+  audio.onStatus = (s) => { if (audioStatus) audioStatus.textContent = s; };
+
+  // reflect the live band values on the sliders so they visibly track the music
+  audio.onUpdate = (bands) => {
+    (['waves', 'vector', 'tiling', 'shaping'] as const).forEach((k) => {
+      const span = bandControlsDiv.querySelector(`span[data-live="${k}"]`);
+      const input = bandControlsDiv.querySelector(`input[data-live="${k}"]`) as HTMLInputElement | null;
+      if (span) span.textContent = bands[k].toFixed(2);
+      if (input) input.value = String(bands[k]);
+    });
+  };
+
+  const reflect = (on: boolean) => {
+    audioToggle.classList.toggle('primary', on);
+    audioToggle.textContent = on ? 'Music: on' : 'Drive with music';
+    bandControlsDiv.classList.toggle('audio-driven', on);
+    if (!on) buildLiveSliders(); // bands back to neutral, sliders live again
+  };
+
+  audioToggle.addEventListener('click', () => {
+    const on = !audio.isEnabled();
+    audio.setEnabled(on);
+    reflect(on);
+  });
+  audioMicBtn.addEventListener('click', () => { audio.useMic(); reflect(true); });
+  audioFileBtn.addEventListener('click', () => audioFileInput.click());
+  audioFileInput.addEventListener('change', () => {
+    if (audioFileInput.files?.[0]) { audio.useFile(audioFileInput.files[0]); reflect(true); }
+  });
 }
 
 // --- Weight sliders (generation-time): apply on next regenerate (G) ---
