@@ -11,6 +11,10 @@ import { analyzeAST } from './analyzer';
 import { renderTree, replaceAtPath } from './tree-view';
 import { Renderer, DEFAULT_CONTROLS, type Controls } from './renderer';
 import { AudioReactive } from './audio-reactive';
+import {
+  encodeSnapshot, decodeSnapshot, snapshotFromHash, shareUrl,
+  captureThumb, saveToGallery, type Snapshot,
+} from './snapshot';
 
 // --- State ---
 const weights: Weights = structuredClone(DEFAULT_WEIGHTS);
@@ -44,6 +48,9 @@ const audioMicBtn = document.getElementById('audio-mic') as HTMLButtonElement;
 const audioFileBtn = document.getElementById('audio-file') as HTMLButtonElement;
 const audioFileInput = document.getElementById('audio-file-input') as HTMLInputElement;
 const audioStatus = document.getElementById('audio-status') as HTMLSpanElement;
+const saveGalleryBtn = document.getElementById('save-gallery-btn') as HTMLButtonElement;
+const shareLinkBtn = document.getElementById('share-link-btn') as HTMLButtonElement;
+const keepStatus = document.getElementById('keep-status') as HTMLDivElement;
 
 // --- Renderer ---
 const renderer = new Renderer(canvas);
@@ -80,7 +87,7 @@ async function boot() {
     setupAudio();
     buildWeightSliders();
     buildTerminalSliders();
-    regenerate();
+    if (!(await tryLoadFromHash())) regenerate();
   } catch (e) {
     const msg = (e as Error).message;
     document.body.innerHTML = `<div style="padding:40px;color:#f55;font-family:monospace;">
@@ -215,6 +222,72 @@ function seedLabel(): string {
     : String(currentSeed);
 }
 
+// --- Snapshots: save / share the exact shader on screen ---
+// Seed alone isn't enough (mutations depend on RNG history, weights change
+// what a seed grows into), so the snapshot carries the AST itself.
+
+function currentSnapshot(): Snapshot | null {
+  if (!currentAST) return null;
+  return {
+    v: 1,
+    ast: currentAST,
+    controls: { ...renderer.controls },
+    seed: currentSeed,
+    depth: currentDepth,
+    mutations: mutationCount,
+  };
+}
+
+async function copyShareLink() {
+  const snap = currentSnapshot();
+  if (!snap) return;
+  const encoded = await encodeSnapshot(snap);
+  history.replaceState(null, '', `#s=${encoded}`); // address bar now IS the shader
+  await navigator.clipboard.writeText(shareUrl(encoded));
+  keepStatus.textContent = 'link copied — anyone who opens it sees exactly this';
+}
+
+async function saveCurrentToGallery() {
+  const snap = currentSnapshot();
+  if (!snap) return;
+  const [encoded, thumb] = await Promise.all([
+    encodeSnapshot(snap),
+    captureThumb(canvas), // must read the canvas in-frame — see snapshot.ts
+  ]);
+  const entry = saveToGallery({ title: `shader ${seedLabel()}`, thumb, data: encoded });
+  keepStatus.innerHTML = entry
+    ? 'saved · <a href="/gallery.html" style="color:#5cf;text-decoration:none;">open gallery</a>'
+    : 'localStorage full — delete some saved shaders first';
+}
+
+// Restore a shared shader from the URL hash. Returns false → boot falls back
+// to a normal regenerate().
+async function tryLoadFromHash(): Promise<boolean> {
+  const encoded = snapshotFromHash();
+  if (!encoded) return false;
+  const snap = await decodeSnapshot(encoded);
+  if (!snap) return false;
+
+  currentAST = snap.ast;
+  currentSeed = snap.seed;
+  currentDepth = snap.depth;
+  mutationCount = snap.mutations;
+
+  depthSlider.value = String(currentDepth);
+  depthValue.textContent = String(currentDepth);
+  renderer.controls = { ...snap.controls };
+  buildLiveSliders();
+
+  const wgsl = buildShaderModule(currentAST);
+  const result = renderer.setShader(wgsl);
+  if (!result.ok) return false;
+
+  seedValue.textContent = seedLabel();
+  seedDisplay.textContent = `seed: ${seedLabel()}`;
+  refreshPanels(wgsl);
+  return true;
+}
+
 function regenerate() {
   // Read seed from input if set, else use current (freshly randomized)
   const inputVal = seedInput.value.trim();
@@ -302,11 +375,17 @@ seedInput.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') regenerate();
 });
 
+shareLinkBtn.addEventListener('click', copyShareLink);
+saveGalleryBtn.addEventListener('click', saveCurrentToGallery);
+
 window.addEventListener('keydown', (e) => {
   if (e.target instanceof HTMLInputElement) return;
   if (e.key === 'g' || e.key === 'G') {
     seedInput.value = '';
     regenerate();
+  }
+  if (e.key === 's' || e.key === 'S') {
+    saveCurrentToGallery();
   }
 });
 

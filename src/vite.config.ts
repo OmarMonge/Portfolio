@@ -14,6 +14,7 @@ export default defineConfig({
         home: resolve(root, 'index.html'),        // the portfolio (front page)
         explorer: resolve(root, 'explorer.html'), // the Shader Explorer tool
         terrain: resolve(root, 'terrain.html'),   // the Generated Terrain page
+        gallery: resolve(__dirname, 'gallery.html'),
         // future project pages go here, e.g.:
         // models: resolve(root, 'models.html'),
       },

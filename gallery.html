@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Gallery</title>
+    <style>
+      @view-transition { navigation: auto; }
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body {
+        font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+        background: #0a0a0a;
+        color: #e0e0e0;
+        min-height: 100vh;
+      }
+      #page {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 24px 20px 80px;
+      }
+      .back-link {
+        display: inline-block;
+        font-size: 11px;
+        letter-spacing: 0.1em;
+        color: #666;
+        text-decoration: none;
+        margin-bottom: 24px;
+        transition: color 0.1s;
+      }
+      .back-link:hover { color: #5cf; }
+      h1 {
+        font-size: 15px;
+        letter-spacing: 0.04em;
+        color: #e0e0e0;
+        margin-bottom: 4px;
+      }
+      .sub { font-size: 11px; color: #666; line-height: 1.6; margin-bottom: 36px; }
+      .sub a { color: #5cf; text-decoration: none; }
+      h2 {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #888;
+        margin: 36px 0 14px;
+      }
+      h2 .note { text-transform: none; letter-spacing: 0.02em; color: #555; font-size: 10px; margin-left: 6px; }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 14px;
+      }
+      .card {
+        background: #101010;
+        border: 1px solid #1e1e1e;
+        border-radius: 3px;
+        overflow: hidden;
+        transition: border-color 0.1s;
+      }
+      .card:hover { border-color: #2a3a44; }
+      .thumb-link { display: block; }
+      .thumb {
+        display: block;
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        background: #000;
+        image-rendering: pixelated;
+      }
+      .thumb-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        color: #444;
+      }
+      .card-body { padding: 10px 12px 12px; }
+      .card-title { font-size: 12px; color: #e0e0e0; margin-bottom: 2px; }
+      .card-meta { font-size: 10px; color: #555; }
+      .card-stats { font-size: 10px; color: #666; margin-top: 6px; line-height: 1.5; min-height: 14px; }
+      .card-actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+      .card-btn {
+        font-family: inherit;
+        font-size: 10px;
+        letter-spacing: 0.04em;
+        color: #888;
+        background: #161616;
+        border: 1px solid #242424;
+        border-radius: 2px;
+        padding: 4px 8px;
+        cursor: pointer;
+        text-decoration: none;
+        transition: color 0.1s, border-color 0.1s;
+      }
+      .card-btn:hover { color: #5cf; border-color: #2a3a44; }
+      .card-btn.danger:hover { color: #f66; border-color: #442a2a; }
+      #local-empty {
+        display: none;
+        font-size: 11px;
+        color: #555;
+        line-height: 1.7;
+        border: 1px dashed #222;
+        border-radius: 3px;
+        padding: 22px;
+      }
+      #local-empty a { color: #5cf; text-decoration: none; }
+    </style>
+  </head>
+  <body>
+    <div id="page">
+      <a class="back-link" href="/">← omar.shader</a>
+      <h1>gallery</h1>
+      <p class="sub">
+        shaders saved from the <a href="/explorer.html">explorer</a> — every card is a
+        full snapshot (AST + controls), so opening one restores it exactly, live and tweakable.
+        saved shaders stay in this browser; share links carry the whole shader in the URL.
+      </p>
+
+      <section id="featured-section">
+        <h2>// featured <span class="note">picked by omar</span></h2>
+        <div class="grid" id="featured-grid"></div>
+      </section>
+
+      <section>
+        <h2>// yours <span class="note">saved in this browser</span></h2>
+        <div class="grid" id="local-grid"></div>
+        <div id="local-empty">
+          nothing saved yet — open the <a href="/explorer.html">explorer</a>, find something
+          worth keeping, and hit <strong>save to gallery</strong>.
+        </div>
+      </section>
+    </div>
+    <script type="module" src="/src/gallery.ts"></script>
+  </body>
+</html>
