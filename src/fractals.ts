@@ -276,7 +276,7 @@ const U = {
 
 let audioCtx: AudioContext | null = null;
 let analyser: AnalyserNode | null = null;
-let freq: Uint8Array | null = null;
+let freq: Uint8Array<ArrayBuffer> | null = null;
 let audioEl: HTMLAudioElement | null = null;
 
 // smoothed bands (envelope follower state)
@@ -291,7 +291,7 @@ function ensureCtx(): AudioContext {
     analyser = audioCtx.createAnalyser();
     analyser.fftSize = 128;                 // -> 64 frequency bins, matches Unity
     analyser.smoothingTimeConstant = 0.0;   // we do our own smoothing
-    freq = new Uint8Array(analyser.frequencyBinCount);
+    freq = new Uint8Array(new ArrayBuffer(analyser.frequencyBinCount));
   }
   return audioCtx;
 }

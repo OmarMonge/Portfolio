@@ -21,7 +21,7 @@ export type BandLevels = Record<(typeof BANDS)[number], number>;
 export class AudioReactive {
   private ctx: AudioContext | null = null;
   private analyser: AnalyserNode | null = null;
-  private freq: Uint8Array | null = null;
+  private freq: Uint8Array<ArrayBuffer> | null = null;
   private audioEl: HTMLAudioElement | null = null;
   private enabled = false;
   private raf = 0;
@@ -52,7 +52,7 @@ export class AudioReactive {
     this.analyser = this.ctx.createAnalyser();
     this.analyser.fftSize = 128;             // 64 bins — matches the Godot/Unity analyzers
     this.analyser.smoothingTimeConstant = 0; // we do our own envelope smoothing
-    this.freq = new Uint8Array(this.analyser.frequencyBinCount);
+    this.freq = new Uint8Array(new ArrayBuffer(this.analyser.frequencyBinCount));
   }
 
   async useMic(): Promise<void> {
