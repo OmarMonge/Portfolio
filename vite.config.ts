@@ -6,17 +6,15 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('.', import.meta.url));
 
 export default defineConfig({
-  // Deploying under a subpath? e.g. GitHub Pages project site "/repo-name/":
-  // base: '/your-repo-name/',
   build: {
     rollupOptions: {
       input: {
         home: resolve(root, 'index.html'),        // the portfolio (front page)
         explorer: resolve(root, 'explorer.html'), // the Shader Explorer tool
-        terrain: resolve(root, 'terrain.html'),   // the Generated 
-        fractals: resolve(root, 'fractals.html'), // the Fractal Visualizer pageTerrain page
-        // future project pages go here, e.g.:
-        // models: resolve(root, 'models.html'),
+        terrain: resolve(root, 'terrain.html'),   // the Generated Terrain page
+        fractals: resolve(root, 'fractals.html'), // the Fractal Visualizer
+        gallery: resolve(root, 'gallery.html'),   // saved shaders
+        // future project pages go here
       },
     },
   },
